@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Vue Carros</title>
+
+    <script src="vue.js"></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <ul class="carros">
+            <li class="carros-item" :class="(item.slug == ativo ? 'ativo' : '')" v-for="item in carros" @click="fetchCarro(item.slug)">
+                <p>{{item.titulo}}</p>
+                <p>{{item.preco}}</p>
+            </li>
+        </ul>
+
+        <div class="carro" v-if="carro">
+            <transition name="entrar" mode="out-in" appear>
+                <div class="carro-item" :key="carro.slug">
+                    <h1>{{carro.titulo}}</h1>
+                    <img :src="carro.acf.foto" :alt="carro.titulo">
+                    <ul class="carro-lista">
+                        <li>Preço: {{carro.acf.preco}}</li>
+                        <li>Ano: {{carro.acf.ano}}</li>
+                        <li>Portas: {{carro.acf.portas}}</li>
+                        <li v-if="carro.acf.novo">Novo</li>
+                        <li v-else>Usado</li>
+                    </ul>
+                </div>
+            </transition>
+        </div>
+    </div>
+
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                carros: [],
+                carro: null,
+                ativo: ''
+            },
+            methods: {
+                fetchCarros() {
+                    fetch('http://carro.local/wp-json/carcraft/v1/carros')
+                    .then(resposta => resposta.json())
+                    .then(respostaJSON => {
+                        this.carros = respostaJSON;
+                    })
+                },
+                fetchCarro(carro) {
+                    fetch(`http://carro.local/wp-json/carcraft/v1/carro/${carro}`)
+                    .then(resposta => resposta.json())
+                    .then(respostaJSON => {
+                        this.carro = respostaJSON;
+                        this.ativo = respostaJSON.slug;
+                    })
+                }
+            },
+            created() {
+                this.fetchCarros();
+            }
+        });
+    </script>
+
+    <style>
+        body {
+            background-color: #282a2d;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            max-width: 600px;
+            margin: 20px auto;
+            color: white;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .carros {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .carros li {
+            cursor: pointer;
+            padding: 15px;
+            margin-right: 20px;
+            border-bottom: 2px solid #0e1013;
+        }
+        .carros li p {
+            margin: 0;
+        }
+
+        .carros .ativo {
+            background-color: #0e1013;
+        }
+
+        .carro-item {
+            box-shadow: 0 2px 6px 1px rgba(0,0,0,.3);
+            border-radius: 4px;
+            padding: 20px 0;
+            background-color: #0e1013;
+        }
+
+        .carro-item h1 {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0 20px 15px 20px;
+        }
+
+        .carro-lista {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 0;
+            margin: 0 20px;
+        }
+
+        .carro-lista li {
+            font-family: monospace;
+            border: 2px solid #282a2d;
+            padding: 10px;
+            margin: -1px;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .entrar-enter-active, .entrar-leave-active {
+            transition: all .3s;
+        }
+
+        .entrar-enter, .entrar-leave-to {
+            opacity: 0;
+            transform: translate(-20px, 0);
+        }
+    </style>
+</body>
+</html>
